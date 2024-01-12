@@ -1,0 +1,22 @@
+---
+- name: Check locally if HTTP service returns status code 200
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Perform HTTP health check with retry
+      uri:
+        url: "http://localhost:{{ app_port_host }}{{ app_health_check_path }}"
+        method: GET
+        return_content: yes
+        status_code: 200
+      register: http_health_check
+      until: http_health_check.status == 200
+      retries: "{{ max_retries }}"
+      delay: "{{ retry_interval }}"
+      ignore_errors: true
+
+    - name: Print result
+      debug:
+        var: http_health_check

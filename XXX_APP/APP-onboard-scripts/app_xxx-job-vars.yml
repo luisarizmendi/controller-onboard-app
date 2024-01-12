@@ -1,0 +1,53 @@
+---
+
+controller_templates:
+  - name: APP XXX - Deploy
+    organization: "Student1 Organization"
+    inventory: Edge Devices
+    project: Device Edge Codebase
+    playbook: playbooks/xxx_app-deploy.yml
+    credentials:
+      - Device Credentials
+    execution_environment: Device Edge Workshops Execution Environment
+    become_enabled: true
+    ask_inventory_on_launch: true
+    extra_vars:
+        app_name: hello-app
+        app_container_image_name: quay.io/luisarizmendi/simple-http
+        app_container_image_tag: prod
+        app_port_host: 9080
+        app_port_conainer: 8080
+
+
+  - name: APP XXX - Test
+    organization: "Student1 Organization"
+    inventory: Edge Devices
+    project: Device Edge Codebase
+    playbook: playbooks/xxx_app-test.yml
+    credentials:
+      - Device Credentials
+    execution_environment: Device Edge Workshops Execution Environment
+    become_enabled: true
+    ask_inventory_on_launch: true
+    extra_vars:
+        app_port_host: 9080
+        app_health_check_path: "/"
+        retry_interval: 5
+        max_retries: 36
+
+
+controller_workflows:
+  - name: APP XXX - Provision Workflow
+    organization: "Student1 Organization"
+    state: present
+    allow_simultaneous: true
+    survey_enabled: false
+    simplified_workflow_nodes:
+      - identifier: APP XXX - Deploy
+        unified_job_template: APP XXX - Deploy
+        success_nodes:
+          - APP XXX - Test
+      - identifier: APP XXX - Test
+        unified_job_template: APP XXX - Test
+    notification_templates_success: "Slack Notification"
+

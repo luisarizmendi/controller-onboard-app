@@ -1,0 +1,11 @@
+---
+
+controller_hostname: "192.168.140.202:10443"
+controller_username: admin
+controller_password: "R3dh4t1!"
+controller_validate_certs: false
+
+controller_configuration_credentials_secure_logging: false
+
+controller_username: student1
+

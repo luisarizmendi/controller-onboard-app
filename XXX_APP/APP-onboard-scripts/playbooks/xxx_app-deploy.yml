@@ -1,0 +1,63 @@
+- name: Simple contenerized APP deploy using Docker or Podman
+  hosts: all
+  become: true
+
+  tasks:
+
+
+    - name: Check if Docker is installed
+      stat:
+        path: /usr/bin/docker
+      register: docker_installed
+
+    - name: Check if Podman is installed
+      stat:
+        path: /usr/bin/podman
+      register: podman_installed
+
+    - block:
+        - name: Download container image with Docker
+          shell: |
+            docker pull {{ app_container_image_name }}:{{ app_container_image_tag }}
+
+        - name: Check if the container exists (Docker)
+          shell: "docker run --rm --name {{ app_name }} busybox true"
+          ignore_errors: true
+          register: docker_container_status
+
+        - name: Stop and remove the container if it exists (Docker)
+          shell: |
+            docker stop {{ app_name }}
+            docker rm {{ app_name }}
+          when: docker_container_status.stdout == 'true' and docker_installed.stat.exists
+
+
+        - name: Run the container with Docker
+          shell: |
+            docker run -d --name={{ app_name }} -p {{ app_port_host }}:{{ app_port_conainer }}  {{ app_container_image_name }}:{{ app_container_image_tag }}
+      when: docker_installed.stat.exists
+
+
+    - block:
+        - name: Download container image with Podman
+          shell: |
+            podman pull {{ app_container_image_name }}:{{ app_container_image_tag }}
+
+
+        - name: Check if the container exists  (Podman)
+          shell: "podman run --rm --name {{ app_name }} busybox true"
+          ignore_errors: true
+          register: docker_container_status
+
+        - name: Stop and remove the container if it exists (Podman)
+          shell: |
+            podman stop {{ app_name }}
+            podman rm {{ app_name }}
+          when: docker_container_status.stdout == 'true' and docker_installed.stat.exists
+
+
+        - name: Run the container with Podman
+          shell: |
+            podman run -d --name={{ app_name }} -p {{ app_port_host }}:{{ app_port_conainer }}  {{ app_container_image_name }}:{{ app_container_image_tag }}
+      when: podman_installed.stat.exists
+
